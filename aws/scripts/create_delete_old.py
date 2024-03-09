@@ -1,7 +1,7 @@
 import boto3
 import time
 
-def create_instance_from_encrypted_snapshot(encrypted_snapshot_id):
+def create_instance_from_encrypted_snapshot(encrypted_snapshot_id, dbclass):
     rds = boto3.client('rds')
     new_instance_id = f"restored-{encrypted_snapshot_id[:8]}"
 
@@ -12,7 +12,7 @@ def create_instance_from_encrypted_snapshot(encrypted_snapshot_id):
     rds.restore_db_instance_from_db_snapshot(
         DBInstanceIdentifier=new_instance_id,
         DBSnapshotIdentifier=encrypted_snapshot_id,
-        DBInstanceClass='db.m4.large'  # Example instance class
+        DBInstanceClass= {dbclass}  # Example instance class
         # Add other necessary parameters as needed
     )
 
@@ -39,6 +39,7 @@ def cleanup_resources(old_instance_id):
 def main():
     encrypted_snapshot_id = input("Enter the Encrypted Snapshot ID: ")
     old_instance_id = input("Enter the Old RDS Instance ID to delete: ")
+    dbclass = input("Enter the DB Instance Class of the original RDS: ")
 
     creation_time = create_instance_from_encrypted_snapshot(encrypted_snapshot_id)
     cleanup_time = cleanup_resources(old_instance_id)
