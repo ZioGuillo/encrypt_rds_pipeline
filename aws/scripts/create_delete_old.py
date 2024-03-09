@@ -12,7 +12,7 @@ def create_instance_from_encrypted_snapshot(encrypted_snapshot_id, dbclass):
     rds.restore_db_instance_from_db_snapshot(
         DBInstanceIdentifier=new_instance_id,
         DBSnapshotIdentifier=encrypted_snapshot_id,
-        DBInstanceClass= {dbclass}  # Example instance class
+        DBInstanceClass= dbclass  # Example instance class
         # Add other necessary parameters as needed
     )
 
