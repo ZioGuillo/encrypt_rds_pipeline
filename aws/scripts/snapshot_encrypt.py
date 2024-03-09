@@ -1,4 +1,5 @@
 import boto3
+import time
 
 def list_rds_instances():
     rds = boto3.client('rds')
@@ -14,6 +15,8 @@ def create_and_encrypt_snapshot(instance_id, kms_key_id):
     encrypted_snapshot_id = f"{snapshot_id}-encrypted"
 
     # Create a snapshot
+    print(f"Starting snapshot creation for {instance_id}...")
+    start_time = time.time()
     rds.create_db_snapshot(
         DBSnapshotIdentifier=snapshot_id,
         DBInstanceIdentifier=instance_id
@@ -21,15 +24,17 @@ def create_and_encrypt_snapshot(instance_id, kms_key_id):
     print(f"Snapshot {snapshot_id} created.")
 
     # Encrypt the snapshot
+    print(f"Starting encryption for snapshot {snapshot_id}...")
     rds.copy_db_snapshot(
         SourceDBSnapshotIdentifier=snapshot_id,
         TargetDBSnapshotIdentifier=encrypted_snapshot_id,
         KmsKeyId=kms_key_id,
         CopyTags=True
     )
+    end_time = time.time()
     print(f"Encrypted snapshot {encrypted_snapshot_id} created.")
 
-    return snapshot_id, encrypted_snapshot_id, instance_id
+    return snapshot_id, encrypted_snapshot_id, instance_id, end_time - start_time
 
 def main():
     instances = list_rds_instances()
@@ -43,11 +48,12 @@ def main():
         if not selected_kms_key:
             selected_kms_key = 'alias/aws/rds'  # default KMS key for RDS
 
-        snapshot_id, encrypted_snapshot_id, instance_id = create_and_encrypt_snapshot(selected_instance, selected_kms_key)
+        snapshot_id, encrypted_snapshot_id, instance_id, duration = create_and_encrypt_snapshot(selected_instance, selected_kms_key)
 
         print(f"\nSnapshot ID: {snapshot_id}")
         print(f"Encrypted Snapshot ID: {encrypted_snapshot_id}")
         print(f"Original RDS Instance ID: {instance_id}")
+        print(f"Total time for snapshot creation and encryption: {duration:.2f} seconds")
 
 if __name__ == '__main__':
     main()
