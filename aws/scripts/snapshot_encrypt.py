@@ -1,5 +1,6 @@
 import boto3
 import time
+import os
 
 def list_rds_instances():
     rds = boto3.client('rds')
@@ -53,6 +54,12 @@ def main():
         db_instance_class = instances[selected_instance].get('DBInstanceClass', 'Unknown size')
 
         snapshot_id, encrypted_snapshot_id, instance_id, db_instance_class, duration = create_and_encrypt_snapshot(selected_instance, selected_kms_key, db_instance_class)
+
+        # Setting environment variables
+        os.environ['SNAPSHOT_ID'] = snapshot_id
+        os.environ['ENCRYPTED_SNAPSHOT_ID'] = encrypted_snapshot_id
+        os.environ['OLD_INSTANCE_ID'] = instance_id
+        os.environ['DB_INSTANCE_CLASS'] = db_instance_class
 
         print(f"\nSnapshot ID: {snapshot_id}")
         print(f"Encrypted Snapshot ID: {encrypted_snapshot_id}")
