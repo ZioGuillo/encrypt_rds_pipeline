@@ -10,8 +10,21 @@ def list_rds_instances():
         exit()
     return {db['DBInstanceIdentifier']: db for db in instances['DBInstances']}
 
+def stop_rds_instance(rds, instance_id):
+    print(f"Stopping RDS instance {instance_id}...")
+    rds.stop_db_instance(DBInstanceIdentifier=instance_id)
+
+    # Wait until the instance is stopped
+    waiter = rds.get_waiter('db_instance_stopped')
+    waiter.wait(DBInstanceIdentifier=instance_id)
+    print(f"RDS instance {instance_id} stopped successfully.")
+
 def create_and_encrypt_snapshot(instance_id, kms_key_id, db_instance_class):
     rds = boto3.client('rds')
+
+    # Stop the RDS instance before taking a snapshot
+    stop_rds_instance(rds, instance_id)
+
     snapshot_id = f"{instance_id}-snapshot"
     encrypted_snapshot_id = f"{snapshot_id}-encrypted"
 
